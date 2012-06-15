@@ -1,0 +1,58 @@
+/* base */
+body, .editorbody, td { font-family:"Times New Roman",Georgia,Serif; font-size: 14px; color:#bbf3f0; }
+body { background:#000000; margin:0; padding:0; }
+ul { margin-top:0; }
+img { border: 0; }
+a:link { color:#bbf3f0; text-decoration:underline; }
+a:visited { color:#bbf3f0;/* old color for visited, darker #4c8e8a*/; }
+a:hover { text-decoration:none; }
+a:active { background:#bbf3f0; color:#000; }
+
+
+/* containers */
+#container { width:600px; margin:30px auto 0; }
+#header, #body, #footer { width:454px; }
+#header { height:213px; background:transparent url('imgs/header-blackbg.png') center center no-repeat; cursor:pointer;}
+#body { padding-top:30px; text-align: justify; min-height:300px; }
+#footer { text-align:right; }
+#menu { padding-top:0px; margin-left:-200px; float:left; overflow:visible; position:relative; font-size:14px; letter-spacing: 8px;}
+#menu > div { margin:9px 0; }
+#menu a { color:#bbf3f0; text-decoration:none; }
+#menu a:hover { text-decoration:underline; }
+#menu a.selected,
+#menu a:active { background:#bbf3f0; color:#000; }
+
+/* gallery */
+.mosaic { font-size:50px; }
+.mosaic .smallthumb { height: 100px; width:100px; }
+.mosaic a { display:inline-block; }
+.mosaic a:hover { border-bottom:3px solid #9ac9c6; opacity:0.6; }
+.album.popup .gallery { z-index:51; }
+.gallery .slideshow { width:454px; height:681px; overflow:hidden;}
+.gallery .slideshow ul { padding:0; margin:0; list-style:none; width:3900px; }
+.gallery .slideshow li { float:left; margin:0 16px; cursor:pointer; }
+.gallery .navigation { margin-bottom:7px; text-align:left; font-size:12px; }
+.gallery .navigation .back { margin:0px 5px; }
+/*.gallery .navigation a { color:#fff; text-decoration:none; border-bottom:3px solid #000;}
+.gallery .navigation a:hover { border-bottom:3px solid #9ac9c6; } 
+.gallery .navigation a:active { color:#000; background:#9ac9c6; } */
+.gallery .navigation .right { float:right; }
+.gallery .counter { color:#749593; }
+
+#overlay {
+    background:#000 none repeat scroll 0 0;
+    display:none;
+    height:100%;
+    left:0;
+    filter:alpha(opacity=70);
+    opacity: 0.7;
+    top:0;
+    width:100%;
+    z-index:50;
+    display:none;
+    position:fixed;
+}
+
+/* misc */
+.hidden { display:none; }
+.clear { clear:both; }

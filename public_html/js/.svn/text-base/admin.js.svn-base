@@ -1,0 +1,538 @@
+var site = {
+    msgTimeout:null,
+    contentDiv:null,
+    locationDiv:null,
+    loadingDiv:null,
+    cropperOpen:false,
+    JcropObj:{},
+    lastTab:{}
+}
+
+site.navTo = function(address, post) {
+    site.loadingDiv.show();
+    var url = address + (address.indexOf("?")==-1 ? "?" : "&") + "ajax" ;
+                    
+    if(address.indexOf("?")!=-1) {
+        location.href = address.replace("?", "#?");
+    } else {
+        location.href = "#";
+    }
+    
+    for (var i in CKEDITOR.instances) {
+        CKEDITOR.instances[i].destroy();   
+    }
+    var type;
+    if(post==undefined) {
+        post = null;
+        type = "GET";
+    } else {
+        type = "POST";
+    }
+    $.ajax({
+        type: type,
+        url: url,
+        data: post,
+        success: function(data) {
+            if(data.charAt(0)!="{") {
+                $("#pageerror").slideDown(500);
+                site.contentDiv.html(data)
+            } else {
+                var response = $.parseJSON(data);
+                $("#pageerror").hide();
+                if(response.redir!=undefined) location.href = response.redir;
+                else if(response.content==undefined) {
+                    site.contentDiv.html(data);
+                } else {
+                    site.updateLocation(response.location);
+                    site.contentDiv.html(response.content);
+                    site.initForms();
+                }
+                site.showMessages();
+            }
+            site.loadingDiv.hide();
+        }
+    });    
+
+}
+site.updateLocation = function(loc) {
+    if(loc==undefined) return false;
+    var l;
+    var html = "";
+    var first = true;
+    for(var i in loc)  {
+        if(first == true) { first = false }
+        else { html = html + " &raquo; " }
+        l = loc[i];
+        html = html + '<a href="'+l.url+'">'+capitaliseFirstLetter(l.name)+'</a>';
+    }
+    site.locationDiv.html(html);
+}
+site.showMessages = function() {
+    $.get("admin.php?ajax&messages", function(data) {
+        if(data!="") {
+            var msgdiv = $("#messages");
+            msgdiv.html(data);
+            setTimeout("site.popMessages()",500);
+        }
+    });
+}
+site.popMessages = function () {
+   // position();
+    $('#messages').show();
+    //$('#messages').show('blind',{},1000);
+    clearTimeout(this.msgTimeout);
+    this.msgTimeout = setTimeout("$('#messages').hide('blind',{},1000)",20000);
+}
+site.init = function() {
+    site.loadingDiv = $("#loading");
+    site.contentDiv = $("#content");
+    site.locationDiv = $("#location");
+    // nav to somewhere if someone comes from outside
+    var loc = location.href;
+    if(loc.indexOf("#")!=-1) {
+        site.navTo(loc.replace("#", ""));
+    }    
+    // anchors
+    $("a").live('click', function(e) {
+        if($(this).hasClass("expand")) {
+            if($(this).next().find(".selected").length<=0) {
+                $(this).next().slideToggle(500);
+            }                
+        } else if($(this).hasClass("clone")) {
+            var elem = $(this).prev().clone().insertBefore($(this));
+            elem.find("input[type='text']").val("");
+            elem.find(".hidden").removeClass('hidden');
+            e.preventDefault();
+        } else {
+            var href = $(this).attr("href");
+            if(href!=undefined&&href.indexOf("#")==-1&&href.indexOf("admin.php")>=0) {
+                if($(this).parent().get(0).nodeName.toLowerCase()=="li") {
+                    $("a.selected").removeClass("selected");
+                    $(this).addClass("selected");
+                }                    
+                e.preventDefault();
+                site.navTo(href);            
+            }
+        }
+    });
+    // forms
+    $("form").live('submit', function(e) {
+        e.preventDefault();       
+
+        var post = {};
+        var action = $(this).attr("action");
+        var iters = {};
+        $(this).find(":input").each(function() {
+            var val = $(this).val();
+            var name = $(this).attr("name");
+            if( val!=undefined && name!=undefined && name!="" && val!="") {
+                if($(this).hasClass("currency")) val = Math.round(val*100);
+                if(name.indexOf("[]")>-1) {
+                    iters[name] = iters[name]==undefined ? 0 : iters[name]+1;
+                    name = name.replace("[]", "["+iters[name]+"]");
+                }
+                
+                if(!($(this).attr("type")=="checkbox" && !$(this).is(":checked")))
+                post[name] = val;
+                
+            }
+        });
+        var sort = $(this).find(".sortable");
+        if(sort.length>0) {
+            var tmp = action.indexOf("?")>0 ? "&" : "?";
+            var order = $(this).find(".sortable").sortable('serialize');
+            action = action + tmp + order;
+        }
+        site.log(post);
+        site.navTo(action, post);
+    });
+}
+site.log = function(data) {
+    if(typeof(console) !== 'undefined' && console != null) {
+        console.log(data);
+    }
+}
+site.initForms = function() {
+    $("#catField").change(function() {
+      updateSubcats();  
+    }).change();
+    
+    $(".button").button();
+    var aioform = $("#aioform");
+    if(aioform.length>0) {
+        $(".tabs").each(function() {
+            var tab = site.lastTab[$(this).attr("id")]!=undefined ? site.lastTab[$(this).attr("id")] : -1;
+            $(this).tabs({
+                collapsible: true,
+                cookie: {
+                    expires: 1
+                },
+                select: function(event, ui) {
+                    site.lastTab[$(this).attr("id")] = ui.index;//$(ui.panel).attr("id");
+                },
+                selected: tab 
+            });    
+        });
+        $(".pagination a").click(function(e) {
+            $('#page').val($(this).attr("href"));
+            aioform.submit();
+            e.preventDefault();
+        });
+    }
+    var config = {
+        filebrowserUploadUrl: "connector.php",
+        stylesCombo_stylesSet: "my_styles"
+    };
+    //config["filebrowserBrowseUrl"] = "browser.php";
+    
+    var example = $("#address-example");
+    if(example.length>0) {
+        var options = example.find("select").html();
+        example.prevAll(".address").find("select").each(function() {
+            $(this).html(options);
+            $(this).find("option[value='"+$(this).attr("title")+"']").attr("selected", true);
+        });
+    }
+    // Initialize the editor.
+    // Callback function can be passed and executed after full instance creation.
+    $('.wysiwyg').each(function() {
+        config["height"] = $(this).css("height");
+        config["width"] = $(this).css("width");
+        config["toolbar"] = $(this).hasClass("extended") ? "Extended" : "General";
+       
+        if($.cookie('superadmin')=="yes") {
+            config["toolbar"] = 'Admin';
+        }
+        $(this).ckeditor(config);
+    });
+    
+    // Initialize the datpicker fields
+    $('.datepicker').datepicker({
+        'dateFormat':'yy-mm-dd',
+        changeMonth: true,
+        changeYear: true,
+        duration: '',
+        firstDay: 1,
+        dayNamesMin: ["Se", "Pr", "An", "Tr", "Ke", "Pe", "Še"],
+        monthNamesShort: ["Sausis", "Vasaris", "Kovas", "Balandis", "Gegužė", "Birželis", "Liepa", "Rugpjūtis", "Rugsėjis", "Spalis", "Lapkritis", "Gruodis"]
+    });    
+    $('.datetimepicker').datepicker({
+        'dateFormat':'yy-mm-dd 00:00',
+        changeMonth: true,
+        changeYear: true,
+        duration: '',
+        firstDay: 1,
+        dayNamesMin: ["Se", "Pr", "An", "Tr", "Ke", "Pe", "Še"],
+        monthNamesShort: ["Sausis", "Vasaris", "Kovas", "Balandis", "Gegužė", "Birželis", "Liepa", "Rugpjūtis", "Rugsėjis", "Spalis", "Lapkritis", "Gruodis"]
+    });    
+    var submitBtn = $("input[type='submit']");
+    $(".uploadfiles").each(function () {
+        var tmp = $(this).hasClass("pictures") ? "1" : "0";
+        var uploader = new qq.FileUploader({
+            // pass the dom node (ex. $(selector)[0] for jQuery users)
+            element: $(this)[0],
+            // path to server-side upload script
+            action: '/upload.php?pictures='+tmp,
+            multiple: $(this).attr("multiple") == "true" ? true : false
+        });
+    });
+    $(".sortable").sortable({ items: 'div.image', handle: '.handle' });
+    $(".currency").each(function() {
+        site.log($(this).val());
+                $(this).val(parseFloat(parseInt($(this).val())/100));
+    }).change(function() {
+        var parsed = parseFloat($(this).val().replace(",", "."));
+        $(this).val(isNaN(parsed)? 0 : parsed);
+    }).change();
+}
+site.showCropper = function(sourceid) {
+    if(site.cropperOpen == true) return;
+    
+    var container = $("#"+sourceid);
+    JcropObj = {};
+    site.cropperOpen = true;
+    container.dialog({
+        "modal":true,
+        "title":"Nuotraukų kadravimas",
+        "width":"auto",
+        "height":"auto",
+        "open": function() {
+            $(this).find(".cropper").each(function() {
+                var parent = $(this);
+                var img = parent.find(".img");
+                var preview = parent.find(".preview");
+                var previewimg = parent.find(".preview").find(".previewimg");
+                JcropObj[$(this).attr("id")] = {
+                    id : $(this).attr("id"),
+                    width : preview.width(),
+                    height : preview.height(),
+                    jcrop : $.Jcrop(img, {
+                        boxWidth: 600,
+                        boxHeight: 400,
+                        aspectRatio: preview.width() / preview.height(),
+                        onChange: function (coords) {
+                            if (parseInt(coords.w) > 0) {
+                                var rx = preview.width() / coords.w;
+                                var ry = preview.height() / coords.h;
+                                previewimg.css({
+                                    width: Math.round(rx * img.width()) + 'px',
+                                    height: Math.round(ry * img.height()) + 'px',
+                                    marginLeft: '-' + Math.round(rx * coords.x) + 'px',
+                                    marginTop: '-' + Math.round(ry * coords.y) + 'px'
+                                });
+                            }
+                        },
+                        onSelect: function(coords) {
+                        }
+                    })
+                };
+            });
+            $(this).find(".croptabs").accordion({
+                /*collapsible: true,
+                active: false,*/
+                autoHeight: false,
+                changestart: function(event, ui) { 
+                }
+            });
+        },
+        "close": function() {
+            for(var obj in JcropObj) {
+                JcropObj[obj].jcrop.destroy();
+            }
+            JcropObj = {};
+            /*$(this).find(".cropper").each(function() {
+                var api = $.Jcrop( $(this).find(".img:first") );
+                api.destroy();
+                $(this).find(".jcrop-holder").remove();
+                console.log("destroying Jcrop", $(this).attr("id"));
+            });*/
+            $(this).find(".croptabs").accordion("destroy");
+            $(this).dialog("destroy");
+            site.cropperOpen = false;
+        }
+    });
+}
+site.cropPic = function (id, filename, prefix) {
+    site.loadingDiv.show();
+    var curr = JcropObj[id];
+    var post = curr.jcrop.tellSelect();
+    if(post.w<=0) { alert("Prieš saugodami pažymėkite plotą, kurį norite iškirpti."); return; }
+    post["filename"] = filename;
+    post["prefix"] = prefix;
+    post["destw"] = curr["width"];
+    post["desth"] = curr["height"];
+    $.post("cropper.php", post, function() {
+        site.loadingDiv.hide();
+        site.showMessages();
+    });
+}
+
+var positioned = false;
+var selectedSubcat;
+
+
+
+            
+function capitaliseFirstLetter(string) {
+    return string.charAt(0).toUpperCase() + string.slice(1);
+}
+function del(what,id) {
+    if (confirm("Ar tikrai?")) {
+        site.navTo("admin.php?ajax&p="+what, {what:what, action:"del", id:id});
+    };
+    
+}
+function newAddress() {
+    var id = $('.address').length;
+    var newAddr = $("#address-example").clone();
+    //curr = newAddr.attr("name");
+    newAddr.attr("id","address-"+id).addClass("address").removeClass("hidden").insertBefore("#address-example");
+    var i = 0;
+    $('.address').each(function(){
+        $(this).find("select").attr("name", "fields[address]["+i+"][city]");
+        $(this).find("input[type='text']").attr("name", "fields[address]["+i+"][address]");
+        $(this).find("input.checked").attr("name", "fields[address]["+i+"][checked]");
+        $(this).find("input.lat").attr("name", "fields[address]["+i+"][lat]");
+        $(this).find("input.lng").attr("name", "fields[address]["+i+"][lng]");
+        i++;
+    });
+}
+function categoryForm(action,catID) {
+    var title, button, buttonTitle;
+    if(action=="new") {
+        buttonTitle = "Sukurti";
+        if(catID == undefined) {
+            title = "Nauja kategorija";
+        } else {
+            title = "Nauja sub-kategorija";
+        }
+        button = function () {
+            var post = { what:"categories", action:"add", fields:{ name: $("#catname").val(), childof:catID } }
+            $.post("admin.php?ajax&p=categories", post, function(data) {
+                $("#content").html(data);
+                $("#category-form").dialog('close');
+                site.showMessages();                
+            });
+
+        };        
+    } else if(action=="edit") {
+        buttonTitle = "Keisti";
+        title = "Kategorijos redagavimas";
+        button = function () {
+            var f = $("#catname");
+            var c = f.val();
+            $.post("admin.php?ajax&p=categories", {what:"categories", action:"set", id:catID, fields:{ name: c } }, function(data) {
+                $("#content").html(data);
+                $("#category-form").dialog('close');
+                site.showMessages();                
+            });
+        };
+    }
+    var params = {
+        autoOpen: false,
+        height: 'auto',
+        width: 500,
+        modal: true,
+        title: title,
+        buttons: {
+            Cancel: function() {
+                $(this).dialog('close');
+            }
+        },
+        close: function() {
+        }
+    };
+    params["buttons"][buttonTitle] = button;
+    $("#category-form").dialog('destroy');
+    $("#category-form").dialog(params);
+    if(action=="edit") {
+        $.get("admin.php?ajax&getCatNameById="+catID, function(response) {
+           $("#catname").val(response);
+           $("#category-form").dialog('open');
+        });
+    } else {
+        $("#catname").val("");
+        $("#category-form").dialog('open');
+    }
+    //$("#category-form").dialog();
+
+}
+function exploreCity(id) {
+    var params = {
+        autoOpen: false,
+        height: 'auto',
+        width: 500,
+        modal: true,
+        title: "Šio miesto adresai",
+        buttons: {
+            Close: function() {
+                $(this).dialog('close');
+            }
+        },
+        close: function() {
+        }
+    };
+    var dialogDiv = $("#explore-city");
+    dialogDiv.dialog('destroy');
+    $.get("admin.php?ajax&exploreCity="+id, function(response) {
+       dialogDiv.html(response);
+       dialogDiv.dialog(params);
+       dialogDiv.dialog('open');
+       $(".ui-widget-overlay").height($(document).height());
+    });
+}
+function setVisited(checkbox, addressid) {
+    var status = $(checkbox).attr("checked") ? "1" : "0";
+    $.get("admin.php?ajax&setVisited="+addressid+"&status="+status);
+}
+function updateSubcats() {
+    var s = $("#subcat");
+    if(s.length>0) {
+        selectedSubcat = s.val();
+        s.remove();
+    }
+    category = $("#catField").val();
+    $.get("admin.php?ajax&subcat="+category, function(data) {
+        $('#subcatContainer').html(data);
+        var sub = $("#sub"+selectedSubcat);
+        if(sub.length>0) sub.attr('selected', true);
+    });
+}
+function deletePic(id, anchor) {
+    $.get("admin.php?ajax&what=pic&delete="+id, function(response) {
+        if(response=="1") {
+            $(anchor).parent().remove();
+        }
+        site.showMessages();
+    });
+}
+function deleteLogo(partnerid, anchor) {
+    $.get("admin.php?ajax&logoDelete="+partnerid, function(response) {
+        if(response=="1") {
+            $(anchor).parent().remove();
+        }
+        site.showMessages();
+    });
+}
+function clonePicField(self) {
+    var f = $("#picUpload");
+    f.clone().attr("id", "").val("").insertBefore($(self)).focus();
+}
+$(function() {
+    site.init();
+    site.showMessages();
+    
+});
+function position() {
+//    if(!positioned) {
+        $('#messages').position({
+            of: $('body'),
+            my: 'right top',
+            at: 'right top',
+            offset: '-50 50',
+            collision: 'fit fit'
+        });
+        positioned = true;
+  //  }
+}
+jQuery.cookie = function(name, value, options) {
+    if (typeof value != 'undefined') { // name and value given, set cookie
+        options = options || {};
+        if (value === null) {
+            value = '';
+            options.expires = -1;
+        }
+        var expires = '';
+        if (options.expires && (typeof options.expires == 'number' || options.expires.toUTCString)) {
+            var date;
+            if (typeof options.expires == 'number') {
+                date = new Date();
+                date.setTime(date.getTime() + (options.expires * 24 * 60 * 60 * 1000));
+            } else {
+                date = options.expires;
+            }
+            expires = '; expires=' + date.toUTCString(); // use expires attribute, max-age is not supported by IE
+        }
+        // CAUTION: Needed to parenthesize options.path and options.domain
+        // in the following expressions, otherwise they evaluate to undefined
+        // in the packed version for some reason...
+        var path = options.path ? '; path=' + (options.path) : '';
+        var domain = options.domain ? '; domain=' + (options.domain) : '';
+        var secure = options.secure ? '; secure' : '';
+        document.cookie = [name, '=', encodeURIComponent(value), expires, path, domain, secure].join('');
+    } else { // only name given, get cookie
+        var cookieValue = null;
+        if (document.cookie && document.cookie != '') {
+            var cookies = document.cookie.split(';');
+            for (var i = 0; i < cookies.length; i++) {
+                var cookie = jQuery.trim(cookies[i]);
+                // Does this cookie string begin with the name we want?
+                if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+};

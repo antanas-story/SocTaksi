@@ -1,0 +1,1248 @@
+var url;
+var animation = false;
+var path;
+var canClose = false;
+var currentPicture;
+var totalPictures;
+var focus = "";
+var newsletterCity = "";
+var preloadedImgs = {};
+
+
+jQuery.fn.center = function () {
+    this.centerX();
+    this.centerY();
+    return this;
+}
+jQuery.fn.centerX = function () {
+    if(false) {
+        var left = ( $(window).width() - this.outerWidth() ) / 2+$(window).scrollLeft();
+        alert(
+        "window.width "+$(window).width()+"\n"+
+        "this.outerWidth "+this.outerWidth()+"\n"+
+        "window.scrollLeft "+$(window).scrollLeft()+"\n"+
+        "left "+left
+        );
+        this.css("position","absolute");
+        this.css("left", left + "px");  
+    } else {
+        this.css("position","absolute");
+        var left = ( $(window).width() - this.outerWidth() ) / 2+$(window).scrollLeft();
+        this.css("left", left + "px");        
+    }
+    return this;
+}
+jQuery.fn.centerY = function () {
+    this.css("position","absolute");
+    var top = ( $(window).height() - this.outerHeight() ) / 2;
+    if(top<5) top = 5;
+    top += +$(window).scrollTop();
+    this.css("top",  top+"px");
+    return this;
+}
+
+function displayPartner(id) {
+    //console.log("displaying partner with id "+id);
+    $.get(path+"index.php?ajax&partner="+id, function(response) {
+        showDialog(response, { width: "auto" }, function() {
+            GMap.init(".markers");
+        });
+    });
+}
+function showDialog(content, css, callback, title) {
+    $("#dialogContent").html(content);    
+    if(title!=undefined)
+        $("#dialogTitle").html(title);
+        
+    if(!$.browser.msie) {
+		if(css!=undefined) {
+			$("#dialog").css(css).center().css(css);     
+		} else {
+			$("#dialog").center();
+		}
+    } else {
+        if(css!=undefined)
+            if(css!=null) {
+                //if(css["width"]=='auto') css["width"] = "500px";
+                $("#dialog").css(css);
+            }
+                
+        $("#dialog").css( { "position":"absolute", "top":($(window).scrollTop() + 50) +"px", "left":"100px" });
+    }    
+            
+    var docheight = $(document).height();
+    $("#overlay").css('height', docheight+'px').fadeIn(200, function() {
+        $("#dialog").fadeIn(300, function() {
+            $(document).bind("keyup.myEvents", function(e) {
+              if (e.keyCode == 27) { closeDialog(); }   // esc key
+            });
+            canClose = true;
+            if($.isFunction(callback)) callback();
+        });
+    });    
+}
+function closeDialog() {
+    canClose = false;
+    $(document).unbind("keyup.myEvents");
+    $("#dialog").fadeOut(300, function() {
+        $("#dialogContent").html("");
+        $("#overlay").fadeOut(100);
+    });
+}
+function showGallery(object, objectid, picnumber, download) {
+    var winHeight = parseInt($(window).height());
+    var post = { object: object, objectid: objectid, picnumber: picnumber, windowheight: winHeight };
+    if(download==true) post["download"] = 1;
+    else post["download"] = 0;
+    $.post(path+"index.php?ajax&showGallery", post, function (response) {
+        currentPicture = picnumber+1;
+        showDialog(response, {width: 'auto', top:($(window).scrollTop()+15)+'px'}, function() { totalPictures = parseInt($("#total").html()); showPic("pic"+(picnumber+1)); });
+    });
+}
+function downloadImg(anchor) {
+    var url = path+"download.php?f="+encodeURIComponent($('#currentpicture').attr('src'));
+    $(anchor).attr("href", url);
+}
+function offerAPartner() {
+    $.get(path+"index.php?ajax&offerapartner", function (response) {
+        showDialog(response, {width: 'auto'}, function() {
+            init_defaulttext();
+            var container = $(".offerapartner");
+            container.find(".submit").click(function() {
+                var partner = container.find(".text").val();
+                var city = container.find(".selectbox").val();
+                if(partner!=""&&partner!=container.find(".text").attr("title")) {
+                    $.post(path+"index.php?ajax&submitapartner", { partner: partner, city: city }, function(response) {
+                        container.hide();
+                        $("#success").show();
+                        setTimeout("closeDialog();", 2500);
+                    });
+                } else {
+                    alert("Nepalikite neužpildytų laukų!");
+                    container.find(".text").focus();
+                }
+            });
+        });
+    });
+}
+function nav(direction) {
+    if(totalPictures>1) {
+        var navTo, go;
+        if(direction=="left") { // navigate left
+            if(currentPicture==1) navTo = totalPictures;
+            else navTo = currentPicture-1;
+            go = -1;
+        } else { // navigate right
+            if(currentPicture==totalPictures) navTo = 1;
+            else navTo = currentPicture+1;
+            go = 1;
+        }
+        currentPicture = navTo;
+        $("#current").html(currentPicture);
+        showPic("pic"+currentPicture);
+        for(var i=1; i<=3; i++ ) {
+            preloadPic("pic"+(navTo+go*i));
+        }       
+        
+        //console.log("navigating to "+direction+", showing picture "+currentPicture);
+    }
+}
+function preloadPic(picid) {
+    var pic = $("#"+picid);
+    if(pic.length>0) {
+        var tmp = new Image(pic.attr("width"), pic.attr("height"));
+        tmp.src = pic.val();            
+    }
+}
+function showPic(fieldid) {
+    var pic = $("#"+fieldid);
+    if(pic.length == 1) {
+        var currpic = $("#currentpicture");
+        //currpic.css("background", "#FFFFFF");
+        if($.browser.msie) {
+            var data = eval('(' + pic.attr("title") + ')');
+            $("#dialog").width(data.width+90);
+            currpic.attr("src","").attr("src", pic.val())
+            .width(data.width)
+            .height(data.height)
+            //.height(pic.attr("height"))
+            ;
+        }
+        else {
+            currpic.attr("src","").attr("src", pic.val()).css({ "width": pic.attr("width")+"px", "height": pic.attr("height")+"px" });
+        }
+        
+        $("#dialog").centerX();
+        
+        //preloader
+        /*var img = new Image();
+        img.onload=function() {
+            var left = (currpic.width()-pic.attr("width"))/2;
+            currpic.attr("src",pic.val()).css({ "width": pic.attr("width")+"px", "height": pic.attr("height")+"px" });
+            
+        };
+        img.src=pic.val();*/
+        
+    }
+}
+function scroll(direction, clicker) {
+    var parentdiv = $(clicker).parent().parent().parent();
+    if(!animation) {
+        var scroller = parentdiv.find(".picscroller");
+        var left = parseInt(scroller.css("left"));
+        var wrapperWidth = parentdiv.find(".picwrapper").width();
+        var scrollerWidth = scroller.find("table").width();
+        var picWidth = scroller.find("td:first").width();
+        var speed = 300;
+        //console.log("direction: "+direction+", current left attr: "+left+", wrapperWidth: "+wrapperWidth+", scrollerWidth: "+scrollerWidth);    
+        if(direction=="left") { /* moving left */
+            if( left <= ((-1)*picWidth) ) {
+                animation = true;
+                left = left+picWidth;
+                scroller.animate({ left: left+"px" }, speed, function() { animation = false; });
+                //console.log("moving left");
+            } else {
+                //console.log("no need to move left");
+            }
+        } else { /* moving right */
+            if( wrapperWidth < (scrollerWidth+left) ) {
+                animation = true;
+                left = left-picWidth;
+                scroller.animate({ left: left+"px" }, speed, function() { animation = false; });
+                //console.log("moving right");
+            } else {
+                //console.log("no need to move right");
+            }
+        }
+        if(wrapperWidth >= (scrollerWidth+left)) {
+            //hide right movement
+            //console.log("hiding right");
+            parentdiv.find(".navright").hide(); 
+        } else {
+            //console.log("showing right");
+            parentdiv.find(".navright").show(); 
+        }
+        if(left > ((-1)*picWidth)) {
+            //console.log("hiding left");
+            parentdiv.find(".navleft").hide(); 
+            //hide left
+        } else {
+            //console.log("showing left");
+            parentdiv.find(".navleft").show(); 
+        }
+        //console.log("end");
+    }        
+}
+function init_sidebar() {
+     // sidebar functionality
+    $(".marker .icon").click(function(event){
+        var self = $(this).parent();
+        if(!self.hasClass("open")) {
+            $(".marker.open").removeClass("open").addClass("closed");
+            self.addClass("open");  
+            self.removeClass("closed");
+        }
+    });               
+    
+    $(".singlenews").each(function() {
+        $(this).click(function(){
+            location.href = $(this).find("a.more").attr("href");
+        });
+    });
+    
+    // sidebar styles
+    var catDiv = $("#categories");
+    var selectedCat = $("#selectedcategory").length > 0 ? $("#selectedcategory").val() : undefined;
+    var selectedSubCat = $("#selectedsubcategory").length > 0 ? $("#selectedsubcategory").val() : undefined;
+    if(selectedCat!=undefined) $("#cat"+selectedCat).addClass("open").removeClass("closed");
+    if(selectedSubCat!=undefined) $("#subcat"+selectedSubCat).addClass("bold");
+}
+function registerIncredible() {
+    var post = {};
+    $(".incredible").each(function () {
+        post[$(this).attr("name")] = $(this).val();
+    });
+    $.post(path+"index.php?ajax&registerIncredible", post, function(response) {
+        showDialog(response, undefined, undefined);
+    });
+}
+function showRegisterForm() {
+    $.get(path+"index.php?ajax&registerform", function (response) {    
+        showDialog(response, {width: 'auto'}, function() {
+            $('#registerform').submit(function() {
+                  return false;
+            });                
+        }, "Gauk išskirtinius pasiūlymus ir informaciją apie pačias geriausias nuolaidas!");
+    });
+}
+function registerStep(step) {
+    var registerform = $("#registerform");    
+    var errordiv = registerform.find("div.error");    
+    if(step==2) {
+      //console.log('Handler for .submit() called.');
+      var error = "";
+      var emptyfields = false;
+      registerform.find(".field").each(function() {
+          if($(this).val()=="") {
+              emptyfields = true;
+              $(this).addClass("error");
+          } else if($(this).hasClass("error")) {
+              $(this).removeClass("error");
+          }
+      });
+      
+      
+      if(emptyfields) error += "Nepalikite tuščių laukų.<br />";                  
+      
+      var email = $("#email").val();
+      var emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;  
+      if( email!="" && !emailPattern.test(email) ) {
+          error += "Blogai įvestas el. pašto adresas.<br />";
+          $("#email").addClass("error");
+      }
+      
+      if( $("#password").val()!="" ) {
+          if( $("#password").val().length<5 ) {
+              error += "Slaptažodis turi būti 5 arba daugiau simbolių ilgio.<br />";
+              $("#password").addClass("error");
+          } else if( $("#password").val().length>32 ) {
+              error += "Slaptažodis turi būti mažiau nei 32 simbolių ilgio.<br />";
+              $("#password").addClass("error");                          
+          } else if($("#password").val()!=$("#passwordagain").val() ) {
+              error += "Nesutampa slaptažodžiai.<br />";
+              $("#password").addClass("error");
+              $("#passwordagain").addClass("error");
+          }
+      }
+      if(error!="") {
+          errordiv.html(error).slideDown(300);
+      } else {
+          $("#step1").hide();
+          $("#step2").show();
+      }  
+    } else if(step==1) {
+          $("#step1").show();
+          $("#step2").hide();  
+    } else if(step==3) {
+        if(!$("#agree").attr("checked")) {
+            alert("Privalote sutikt gauti Daily Card naujienas.");
+            return false;
+        }        
+        var post = {};
+        registerform.find(".field").each(function() {
+              post[$(this).attr("name")] = $(this).val();
+        });          
+        post["birthday"] = $("#byear").val() + "-" + $("#bmonth").val() + "-" + $("#bday").val();
+        var groups = "";
+        $(".groups").each(function() {
+            groups += (groups=="" ? "" : ", ")+$(this).val();
+        });
+        post["groups"] = groups;
+        $.post("index.php?ajax&reguser", post, function(response) {
+          if(response=="") {
+              registerform.find(".wrapper").slideUp("fast");
+              registerform.find(".success").slideDown("fast");
+          } else {
+              errordiv.html(response).slideDown(300);
+          }
+      });
+    }
+}
+function check(what, source) {
+    console.log(what + " " + source)
+    var checked;
+    if(what=="all") {
+        $('.groups, .cat input').attr('checked', $(source).attr('checked') );
+    } else if(what=="single") {
+        checked = true;
+        $(source).parent().parent().find(".subcat input").each(function() {
+            if(!$(this).attr("checked")) checked = false;
+        });
+        $(source).parent().parent().find(".cat input").attr("checked", checked);
+    } else {
+        $('.'+what).attr('checked', $(source).attr('checked') );
+    }
+    if(!$(source).attr("checked")) {
+        $("#all input").attr("checked",false);
+    } else {
+        checked = true;
+        $('.subcat input').each(function() { if(!$(this).attr("checked")) checked = false; });
+        if(checked) $("#all input").attr("checked",true);
+    }
+}
+function showGetCardForm(element) {
+    $.get(path+"index.php?ajax&getCardForm", function (response) {
+        var init_func = function() {
+            init_checkboxes();
+            $("#getcardform").submit(function() {
+                var form = $(this);
+                if(!$("#agree").attr("checked")) {
+                    alert("Privalote sutikti, kad su jumis susisiektų banko darbuotojas.");
+                    return false;
+                }
+                var emptyfield=false;
+                var post = {};
+                form.find(".field").each(function() {
+                    if($(this).val()=="") emptyfield = true;
+                    post[$(this).attr("name")] = $(this).val();
+                });
+                post["isclient"] = $("#isclient").attr("checked") ? "1" : "0";
+                if(emptyfield) {
+                    alert("Nepalikite tuščių laukų!");
+                    return false;            
+                }                
+                $.post("index.php?ajax&getCard", post, function(response) {
+                      if(response=="") {
+                          form.find(".wrapper").slideUp("fast");
+                          form.find(".success").slideDown("fast");
+                      } else {
+                          form.find(".error").html(response).slideDown(300);
+                      }
+                      console.log(response);
+                      
+                });   
+                return false;           
+            });
+        };
+        if(element == undefined) {
+            showDialog(response, {width: 'auto'}, init_func, "Anketa kortelei gauti");
+        } else {
+            $(element).html(response);
+            init_func();
+        }
+        
+        
+        
+    });
+}
+function forgotPassForm() {
+    $.get(path+"index.php?ajax&forgotpassform", function (response) {
+        showDialog(response, {width: 'auto'}, function() {
+            $("#passreset .submit").click(function() {
+                $.get(path+"index.php?ajax&resetpass="+$("#email").val(), function(response) {
+                    var div = $("#passreset");
+                    if(response!="") {
+                        div.find("div.error").html(response).slideDown("fast");
+                    } else {
+                          div.find(".wrapper").slideUp("fast");
+                          div.find(".success").slideDown("fast");
+                    }
+                });
+            });
+        });
+        
+    });
+}
+function init_defaulttext() {
+    $(".default").focus(function() {
+        if($(this).val()==$(this).attr("title")) {
+            $(this).val('');
+            $(this).removeClass("shadow");
+        }
+    }).blur(function() {
+        if($(this).val()==''||$(this).val()==$(this).attr("title")) {
+            $(this).addClass("shadow");
+            $(this).val($(this).attr("title"));
+        }
+    }).blur();   
+    $("form").submit(function() {
+        $(this).find(".default").each(function() {
+            if($(this).val()==$(this).attr("title")) {
+                $(this).val('');
+            }
+        });
+    });
+}
+function init_appearance() {
+    /*$("#overlay").click(function() {
+       if(canClose) closeDialog(); 
+    });*/
+    // gallery app init
+    if($(".pictures").length>0) {
+        if($(".pic").length<=4) {
+            $(".navigation").hide();
+        } else {
+            $(".navleft").hide();
+        }
+    }
+    init_checkboxes();
+    
+    /*
+    $("#content.travel img").each(function() {
+        var src = $(this).attr("src").replace("thumbs/", "");
+        $(this).css("cursor", "pointer");
+        $(this).click(function() {
+            var newH = parseInt($(window).height())-100;
+            showDialog("<img src='"+src+"' alt='photo' width='"+newH+"' height='"+newH+"' />", {width:'auto'});
+        });
+        
+    });*/
+    $("#gotcardnot").click(function() {
+        if($(this).attr("checked")) {
+            $("#adit").slideDown("fast"); 
+        }
+    });
+    $("#gotcard").click(function() {
+        if($(this).attr("checked")) {
+            $("#adit").slideUp("fast"); 
+        }
+    });
+    $("#lottery").submit(function() {
+        /*if(!$("#agree").attr("checked")) {
+            alert("Privalote sutikti, kad su jumis susisiektų banko darbuotojas.");
+            return false;
+        }*/
+        if(!$("#gotcard").attr("checked")&&!$("#wannaget").attr("checked")) {
+            alert("Loterijoje gali dalyvauti tik turintys Daily Card korteles.");
+            return false;
+        }
+        var emptyfield = false;
+        $(this).find("input[type='text']").each(function() {
+            if($(this).val()=="") emptyfield = true;
+        });
+        if(emptyfield) {
+            alert("Nepalikite tuščių laukų!");
+            return false;            
+        }
+        if( !validateEmail($(this).find(".email").val()) ) {
+            alert("Blogai suformatuotas el. pašto adresas.");
+            return false;
+        }   
+    });
+    $('.datepicker').datepicker({
+        'dateFormat':'yy-mm-dd',
+        duration: '',
+        firstDay: 1,
+        showOtherMonths: true,
+        selectOtherMonths: true,
+        dayNamesMin: ["Se", "Pr", "An", "Tr", "Ke", "Pe", "Še"],
+        monthNames: ["Sausis", "Vasaris", "Kovas", "Balandis", "Gegužė", "Birželis", "Liepa", "Rugpjūtis", "Rugsėjis", "Spalis", "Lapkritis", "Gruodis"],
+        onSelect: function(dateText, inst) {
+            location.href = path+"daily-blog/diena/"+dateText;
+        }
+    });       
+    $("#calendaryear").text($(".ui-datepicker-title").text());
+}
+function init_checkboxes() {
+    $('input[type=checkbox]').each(function() {
+        $(this).wrap(function() {
+            return ($(this).is(':checked')) ? '<span class="custom_checkbox selected" />' : '<span class="custom_checkbox" />';
+        });
+    });
+    
+    $('.custom_checkbox input[type=checkbox]').click(function () {
+        if($(this).hasClass("distinct")) {
+            $(".custom_checkbox input[name='"+$(this).attr("name")+"']").attr("checked", false).parent().removeClass("selected");
+            $(this).attr("checked", true).parent().addClass("selected");
+        } else {
+            $(this).parent().toggleClass('selected');
+        }
+    });
+    
+}
+function init_menu() {
+    // top menu selection highlight
+    url = $("#url").val();
+    path = $("#path").val();
+    $("#menu a").each(function(){
+        var self = $(this);
+        if(self.attr("href")==url) {
+            self.addClass("selected");
+            if($("#submenu").length==1) {
+                var sub = $("#submenu");
+                var cPadTop = parseInt($("#content").css("padding-top"));
+                $("#content").css("padding-top", (parseInt(sub.css("padding-bottom"))+cPadTop)+"px");
+                sub.css("position", "absolute").position({
+                    of:self,
+                    at:"left bottom",
+                    my:"left top",
+                    offset:self.css("padding-left")+" "+sub.css("margin-top")
+                });
+            }                
+            
+        }
+    });
+    /*if($.browser.msie) {
+        $("#menu a.home").mouseenter(function() {
+            $(this).addClass("selected");
+        }).mouseleave(function() {
+            $(this).removeClass("selected");
+        });
+    }*/
+    
+}
+function init_banners() {
+    var i = 0;
+    if (swfobject.hasFlashPlayerVersion("9.0.0")) {    
+        $(".banner").each(function() {
+            var swfdiv = $(this).find(".swfbanner");
+            if(swfdiv.length>0) {
+                var id = "banner"+i;
+                swfdiv.attr("id", id);
+                var swfInfo = $(this).find(".info");
+                swfInfo = $(swfInfo[Math.round(Math.random())]);
+                //var att = { data:swfUrlStr, width:"300", height:"250" };
+                //var par = { wmode:"transparent", flashvars:"url="+encodeURIComponent($(this).attr("rel")) };
+                var att = {};
+                var par = { wmode:"transparent" };
+                var flashVars = {};
+                flashVars.url = swfInfo.val();
+                //var myObject = swfobject.embedSWF(swfUrlStr, id, "300", "250", swfVersionStr, xiSwfUrlStr, flashvarsObj, par, att);
+                //console.log("swfUrl "+swfUrlStr+"; id "+id+"; ");
+                //console.log("banner", id, swfUrlStr, myObj, parseInt(swfdiv.width()), parseInt(swfdiv.height()));
+                var myObj =  swfobject.embedSWF(swfInfo.attr("name"), id, parseInt(swfdiv.width()), parseInt(swfdiv.height()), "9.0.0", "", flashVars, par, att);
+                //swfobject.createSWF(att, par, id);
+                i++;
+                
+                //var url = $("#linguawrap").attr("rel");
+            }
+        });
+    
+    } else {
+        showDialog("Kad matytumėte visus tinklapio elementus privalote atisiųsti ir įdiegti <a href='http://get.adobe.com/flashplayer/'>Adobe® Flash® Player</a>.");
+    }    
+}
+function sectionSwitch(to, self) {
+    $('.ab').hide();
+    $('#'+to).show();
+}
+function login() {
+    var post = { email: $("#loginemail").val(), password: $("#loginpassword").val() };
+    $.post(path+"index.php?ajax&login", post, function(response) {
+        if(response=="") {
+            location.href=path;
+        } else {
+            alert(response);
+        }
+    });
+}
+function logout() {
+    $.get("index.php?ajax&logout=1", function() {
+        location.reload();
+    });
+}
+function link(whereto) {
+    location.href = path+whereto;
+}
+function createDropDown(source) {
+    var selected = source.find("option[selected]");
+    if(selected.length==0) selected = source.find("option:first-child");
+    var options = $("option", source);
+    
+    var targetid = 'target'+source.attr("id");
+    source.hide();
+    source.after('<dl id="'+targetid+'" class="dropdown"></dl>')
+    var target = $("#"+targetid);
+    var text = selected.html();
+    if(selected.attr("class")!=undefined) text = "<span class='"+selected.attr("class")+"'>"+text+"</span>";
+    target.append('<dt><a href="#">' + text + 
+        '<span class="value">' + selected.val() + 
+        '</span></a></dt>');
+    target.append('<dd><ul></ul></dd>')
+
+    options.each(function(){
+    var text = $(this).html();
+    if($(this).attr("class")!=undefined) text = "<span class='"+$(this).attr("class")+"'>"+text+"</span>";        
+        target.find("dd ul").append('<li><a href="#">' + 
+            text + '<span class="value">' + 
+            $(this).val() + '</span></a></li>');
+    });
+    
+    target.find("dt a").click(function(e) {
+        target.find("dd ul").toggle();
+        e.preventDefault();
+    });
+    
+    $(document).bind('click', function(e) {
+        var clicked = $(e.target);
+        if (! clicked.parents().hasClass("dropdown"))
+            $(".dropdown dd ul").hide();
+    });
+                
+    target.find("dd ul li a").click(function(e) {
+        var text = $(this).html();
+        target.find("dt a").html(text);
+        target.find("dd ul").hide();
+        
+        source.val($(this).find("span.value").html())
+        e.preventDefault();        
+    });        
+    
+}
+function init_newtemplate() {
+    clock.init("#clock");
+    
+    /* init select */
+    $("select").each(function() {
+        createDropDown($(this));
+    });
+    
+    /* slide show blocks */ 
+    if($("#middle.titular").length>0) {
+        $(".slideshow").each(function() {
+            var slideshow = $(this);
+            var parent = $(this).parent();
+            var pid = parent.attr("id");
+            slideshow.serialScroll({
+                items:'li',
+                prev:"#"+pid+" .prev",
+                next:"#"+pid+" .next",
+                offset:0, //when scrolling to photo, stop 230 before reaching it (from the left)
+                start:0, //as we are centering it, start at the 2nd
+                duration:1200, // Length of the animation (if you scroll 2 axes and use queue, then each axis take half this time)
+                force:true, // Force a scroll to the element specified by 'start' (some browsers don't reset on refreshes)
+                stop:true, // Each click will stop any previous animations of the target. (false by default)
+                lock:false, // Ignore events if already animating (true by default)
+                cycle:true, // pull back once you reach the end
+                //easing:'easeOut' //use this easing equation for a funny effect
+                constant:false,
+                exclude:2,
+                easing:'easeOutQuart', //use this easing equation for a funny effect
+                //jump: true,
+                interval:4000
+            });
+            parent.find(".navigation").click(function() {
+                slideshow.trigger('stop');
+            });
+        });
+    }
+    
+            
+    if($("#single").length>0) {
+        s = $("#single");
+        var done = false;
+        var hidden;
+        var left = s.find(".left");
+        var right = s.find(".right");
+        do {
+            hidden = null;
+            hidden = left.find(".newsthumbbig:hidden:first");
+            if(hidden.length>0) {
+                if(left.height()+hidden.height()<right.height()) {
+                    hidden.show();
+                } else {
+                    done = true;
+                }
+            } else {
+                done = true;
+            }
+            //done = true;
+        } while (!done);
+        
+        
+        var newW = 600;
+        $(".youtube").each(function() {
+            var self = $(this);
+            var oldW = self.width();
+            var oldH = self.height();     
+            self.mouseenter(function() {
+                self.find("embed, object").css({ width: newW+"px", height:oldH*newW/oldW+"px" });
+            }).mouseleave(function() {
+                self.find("embed, object").css({ width: oldW+"px", height:oldH+"px" });                
+            });
+            self.find(".expand").click(function(e) {
+                self.find("embed, object").css({ width: newW+"px", height:oldH*newW/oldW });
+                e.preventDefault();
+                $(this).find(",text").toggle();
+            });
+        });
+    }
+              
+    /* init faq */
+    $("li.selected .answer").show();
+    
+    /* init mega dropdown  */
+    $("#cat").each(function() {
+        $(this).find(".toggles").click(function() {
+            $("#catmegadropdown").slideToggle(400);
+            $(".toggles").toggleClass("selected");
+            var head =$("#catmegadropdown .header");
+            var left = $("#catselected").offset().left - head.offsetParent().offset().left;
+            head.css("left", left+"px");
+        });
+        $(this).find("a").click(function(e) {
+            $("#catfield").val( $(this).attr("name") );
+            $("#cat .txt").html( $(this).html() );
+            $("#catselected").click();
+            e.preventDefault();
+        });
+    });
+    
+    /* partner list init */
+    if($("#partnerlist").length==1) {
+        $(".partner").mouseenter(function(){
+            $(this).addClass("hover");
+        }).mouseleave(function(){
+            $(this).removeClass("hover");
+        }).click(function() {
+            displayPartner($(this).data("id"));
+        });
+        
+    }
+    // weekly widget
+    if($("#weeklywidget").length==1) {
+        $(".weeklysmall").live("click", function(e) {
+            location.href = $(this).find(".href").val();
+        });
+        var cities = $("#cityselector");
+        cities.find(".selection").hide();
+        cities.position({
+            of:$("#alignTo"),
+            my:"left center",
+            at:"right center",
+            offset:"10 0"
+        });
+        $("#weeklywidget.titular .weeklysmall:nth-child(2n+1)").addClass("noleftmargin");
+        $("#weeklywidget.titular .weeklysmall:nth-child(2n+2)").addClass("norightmargin");
+        $("#weeklywidget.other .weeklysmall:nth-child(3n+1)").addClass("noleftmargin");
+        $("#weeklywidget.other .weeklysmall:nth-child(3n+3)").addClass("norightmargin"); 
+    }   
+     
+    // general buttons
+    $(".button").mouseenter(function() {
+        $(this).addClass("hover");
+    }).mouseleave(function() {
+        $(this).removeClass("hover");
+    });
+    
+    // general email field
+    $("#email").change(function() {
+        if( !validateField($(this)) ) {
+            $(this).addClass("error");
+            $(this).removeClass("good");
+        } else {
+            $(this).removeClass("error");
+            $(this).addClass("good");
+        }        
+    }).val("");
+            
+    // if weekly offer
+    if($("#currentoffer").length==1) {
+        $(".more").click(function(e) {
+            $(".more").find("span").toggle();
+            $("#descriptionFull").slideToggle(600);
+            e.preventDefault();
+        });
+    }
+
+    // if partners search form
+    var auto = $(".autocomplete");
+    if(auto.length>0) {
+        var accentMap = {
+            "ą": "a", "Ą": "A",
+            "č": "c", "Č": "C",
+            "ę": "e", "Ę": "E",
+            "ė": "e", "Ė": "E",
+            "į": "i", "Į": "I",
+            "š": "s", "Š": "S",
+            "ų": "u", "Ų": "U",
+            "ū": "u", "Ū": "U",
+            "ž": "z", "Ž": "Z"
+        };
+        var normalize = function( term ) {
+            var ret = "";
+            for ( var i = 0; i < term.length; i++ ) {
+                ret += accentMap[ term.charAt(i) ] || term.charAt(i);
+            }
+            return ret;
+        };
+
+        auto.each(function() {
+           //var source = $(this).attr("alt");
+           //console.log(cache);
+           $(this).autocomplete({
+                source: function( request, response ) {
+                    var matcher = new RegExp( $.ui.autocomplete.escapeRegex( request.term ), "i" );
+                    response( $.grep( citycache, function( value ) {
+                        value = value.label || value.value || value;
+                        return matcher.test( value ) || matcher.test( normalize( value ) );
+                    }) );
+                }
+           });
+        });
+    }
+              
+    // if weekly offer buy form
+    if($("#buyform").length==1) {
+        var q = $("#quantity");    
+        q.val("1").change(function() {
+            var val = isNaN($(this).val()) ? 1 : parseInt($(this).val());
+            var couponsLeft = parseInt($("#totalCoupons").html()) - parseInt($("#totalBought").html());
+            if(val>couponsLeft) val = couponsLeft;
+            if(val < 1) { val = 1; }
+            $(this).val( val );
+            updateSum();
+        });
+        $("#plus").click(function() {
+            var newval = parseInt(q.val())+1;
+            var couponsLeft = parseInt($("#totalCoupons").html()) - parseInt($("#totalBought").html());
+            if(newval<=couponsLeft) q.val(newval);
+            updateSum();
+            
+        });
+        $("#minus").click(function() {
+            if(parseInt(q.val()) > 1) {
+                q.val( parseInt(q.val())-1 );
+                updateSum();
+            }
+        });    
+
+        $("#card").change(function() {
+            var field = $(this);
+            if(field.val()!="")
+            validateCard(function(pass) {
+                if(pass) {
+                    field.removeClass("error");
+                    field.addClass("good");                
+                    $("#withorwithout").html("su");
+                    $("#itemCost").html($("#costCard").html());
+                } else {
+                    field.addClass("error");
+                    field.removeClass("good");                             
+                    $("#withorwithout").html("be");
+                    $("#itemCost").html($("#costDiscount").html());                    
+                }
+                updateSum();
+            });
+        }).val("");
+        $("#code").change(function() {
+            var field = $(this);
+            if($("#email").change().hasClass("error")) {
+                $.scrollTo( $("label[for='email']"), 800 );// bad email
+                field.val("");
+            } else {
+                var email = $("#email").val();
+                $.getJSON(path+"index.php?ajax&isFreeEmail="+email, function(response) {
+                    if(!$("#card").hasClass("good")&&field.val()!="") {
+                        if(response.free==true&&field.val()==$("#thecode").text()) {
+                            field.addClass("good");
+                            field.removeClass("error");
+                            $("#withorwithout").html("su");
+                            $("#itemCost").html($("#costCard").html());
+                        } else {
+                            if(response.free==false) {
+                                alert("Šiuo el. paštu jau panaudojai savo vienkartinę nuolaidą");
+                            }
+                            field.addClass("error");
+                            field.removeClass("good");
+                            $("#withorwithout").html("be");
+                            $("#itemCost").html($("#costDiscount").html());                    
+                        }
+                        updateSum();
+                    }
+                });
+            }
+        }).val("");
+        $(".bankradio").click(function() {
+            $("label[for='bank']").removeClass("error");
+        });
+        $("#theform").submit(function(e) {
+            valid = true;
+            //$(this).find(".required:visible").each(function() { $(this).change(); if($(this).hasClass("error")) valid = false; });
+            if($("#email").change().hasClass("good")) {
+                if($(".bankradio:checked").length>0) {
+                   if(!$("#card").hasClass("good")&&$("#code").hasClass("good")) {
+                       $(".nocard input").each(function() {
+                           if($(this).val()=="") {
+                               valid = false;
+                               $(this).change();
+                           }
+                       });
+                       if(!valid) {
+                           trigger("error", "#expandedmsg", "Nepalik tuščių laukų.");
+                       }                       
+                       
+                       if(valid&&$("#agree").attr("checked")==false) { // doesn't agree
+                           valid = false;
+                           $("label[for='agree']").addClass("error");
+                           trigger("error", "#expandedmsg", "Privalai sutikti, kad su Tavimi susisiektų DnB NORD banko darbuotojas.");
+                       }
+                       if(!valid) {
+                           $.scrollTo( $("#expandedmsg"), 800 );// bad fields
+                           e.preventDefault();
+                       }
+                   }
+                } else {
+                    trigger("error", "#bankmsg", "Nepasirinkote banko.");
+                    $("label[for='bank']").addClass("error");
+                    e.preventDefault();
+                }
+            } else {
+                trigger("error", "#emailcardmsg", "Blogai įvestas el. pašto adresas.");
+                $.scrollTo( $("#emailcardmsg"), 800 );// bad email
+                e.preventDefault();
+            }
+        });        
+    }
+    
+    // if get card form
+    if($("#getcard").length==1) {
+        $("#getcard").submit(function(e) {
+            e.preventDefault();            
+            var form = $(this);
+            valid = true;
+            if($("#email").change().hasClass("good")) {
+                form.find("input[type='text']").each(function() {
+                   if($(this).val()=="") {
+                       valid = false;
+                       $(this).change();
+                   }
+                });
+                if(!valid) {
+                    trigger("error", "#getcardWrap", "Nepalik tuščių laukų."); 
+                }
+                if(valid && $("#agree").attr("checked")==false) {
+                    valid = false;
+                    $("label[for='agree']").addClass("error");
+                    trigger("error", "#getcardWrap", "Privalai sutikti, kad su Tavimi susisiektų DnB NORD banko darbuotojas."); 
+                }
+                if(valid) {
+                    var post = {};
+                    form.find("input[type='text']").each(function() {
+                        post[$(this).attr("name")] = $(this).val();
+                    });
+                    post["isclient"] = $("#isclient").attr("checked") ? "1" : "0";
+                    $.get(path+"index.php?ajax&city=&regEmail="+$("#email").val());
+                    $.post("index.php?ajax&getCard", post, function(response) {
+                        trigger("success", "#getcardWrap", "Anketa sėkmingai užpildyta! Kelių dienų bėgyje su Tavimi susisieks DnB NORD banko darbuotojas.");
+                        $("#helper").hide(300);
+                        form.slideUp(800, function() {
+                            
+                            
+                        });
+                   });                    
+               }
+            } else {
+               trigger("error", "#getcardWrap", "Blogai įvestas el. pašto adresas."); 
+            }
+        });        
+        
+                
+    } 
+    
+    // general form
+    if($(".theform").length>0) {        
+        $("#agree").click(function() {
+            $("label[for='agree']").removeClass("error");
+        });
+        $(".required").change(function() {
+            var field = $(this);
+            if( validateField(field) ) {
+                field.removeClass("error");
+                field.addClass("good");                
+            } else {
+                field.addClass("error");
+                field.removeClass("good");              
+            }
+        });
+    }
+}
+function validateCard(callback) {
+    var field = $("#card");
+    $.getJSON(path+"index.php?ajax&checkCard="+field.val(), function(response) {
+        callback(response.success);
+    });
+}
+function validateField(field) {
+    var val = field.val();
+    var pass = true;
+    if(val=="") pass = false;
+    if(pass && field.hasClass("email") && !validateEmail(val)) pass = false;
+    if(pass && field.hasClass("code") && $("#"+field.attr("name")).val()==val) pass = false;
+    return pass;
+}
+function updateSum() {
+    var itemCost = parseFloat($("#itemCost").html());
+    var quantity = parseInt($("#quantity").val());
+    var sum = itemCost * quantity;
+    $(".sum").each(function() {
+        $(this).html(sum);
+    });
+}
+function toggleBlock(selector) {
+    var elems = $(selector).find(".toggle");
+    elems.each(function() {
+        $(this).toggle();
+    });
+}
+function toggleCities(source) {
+    var src = $(source);
+    if(src.is(":hidden")) {
+        src.show(300);
+        //src.show("blink", 500);
+    } else {
+        src.hide(300);
+        //src.hide("blink", 500);
+    }
+}
+function pickNlC(cityid, name) {
+    newsletterCity=cityid;
+    toggleCities('#nlC');
+    $("#nlSC").html(name);
+}
+function pickCity(cityid) {
+    $.cookie('currentCity', cityid, { expires: 365, path: '/' });
+    location.reload();
+}
+function registerNewsletter() {
+    if($("#email").change().hasClass("good")) {
+        var email = $("#email").val();
+        if(newsletterCity=="") {
+            trigger("error", "#newsletter", "Privalote pasirinkti miestą.");
+        } else {
+            var city = newsletterCity;
+            $.get(path+"index.php?ajax&city="+city+"&regEmail="+email, function(response) {
+                $("#email").val("").removeClass("good").blur();
+                trigger("success", "#newsletter", "Tavo el. pašto adresas sėkmingai užregistruotas! Laukite naujienlaiškių.");//`"+email+"`
+            });
+        }
+    } else {
+        trigger("error", "#newsletter", "Blogai suformatuotas el. pašto adresas.");
+    }
+}    
+function trigger(status, selector, text) {
+    var div = $(selector);
+    if(!div.hasClass("message")) div = div.find(".message");
+    if(div.length>0) {
+        //console.log(div);
+        div.removeClass(status=="error" ? "success" : "error").addClass(status);
+        var msgtext = div.find(".msgtext");
+        msgtext.html(text);
+        if(div.is(":hidden")) div.slideDown(300);        
+        div.find(".msgicon").position({
+            my:"right center",
+            at:"left center",
+            of:msgtext,
+            offset:"-5 0"
+        });
+    }
+}
+function faq(child) {
+    var li = $(child).parent();
+    var expand = true;
+    if(li.hasClass("selected")) {
+        li.removeClass("selected").find(".answer").hide("blind", 500);
+    } else {
+        var prev = $("li.selected");
+        prev.removeClass("selected").find(".answer").hide("blind", 500);
+        li.addClass("selected").find(".answer").show("blind", 500);/*, function() {
+            if($.browser.msie) {
+                $(this).find("ol,ul").css("display", "block");
+                //alert(matched.length);
+            }
+        });                                                      */
+    }
+
+    
+}
+function showTellFriend(offerid) {
+    $.get(path+"index.php?ajax&showTellFriend", function (response) {
+        var init_func = function() {
+            $("#tellFriend").submit(function(e) {
+                e.preventDefault();
+                var form = $(this);
+                var pass = true;
+                var post = {};
+                form.find(".field").each(function() {
+                    if(!validateField($(this))) {
+                        pass = false;
+                    } else {
+                    }
+                    post[$(this).attr("name")] = $(this).val();
+                });
+                if(pass) {
+                    post["offerid"] = offerid;
+                    $.post(path+"index.php?ajax&tellFriend", post, function(r) {
+                          form.find(".wrapper").slideUp("fast");
+                          form.find(".success").slideDown("fast");
+                          setTimeout("closeDialog();", 2500);
+                    });   
+                }
+            });
+        };
+        showDialog(response, {width: 'auto'}, init_func, "Pranešk draugui!");
+    });    
+}
+var clock = {
+    prevsecond: null,
+    container: null,
+    span: {},
+    countdownfrom : null,
+    countdownto: null,
+    offset: null,
+    timer: null,
+    minutes: null,
+    hours: null,
+    days: null
+};
+clock.updateTime = function() {
+    var now=new Date();
+    var currentsecond = now.getSeconds();
+    if(currentsecond != this.prevsecond) {
+        this.prevsecond = currentsecond;
+        var timeleft = Math.abs(this.countdownto - Date.parse(now) + this.offset);
+        var d = Math.floor(timeleft/this.days);
+        timeleft -= d*this.days;
+        var h = Math.floor(timeleft/this.hours);
+        timeleft -= h*this.hours;
+        var m = Math.floor(timeleft/this.minutes);
+        timeleft -= m*this.minutes;
+        var s = Math.floor(timeleft/1000);
+        this.set('days', d, false);
+        this.set('hours', h);
+        this.set('minutes', m);
+        this.set('seconds', s);
+    }
+    timer=setTimeout("clock.updateTime()",250);
+};
+clock.set = function(what, value, pad) {
+    
+    var str = '' + value;
+    if((pad==undefined||pad==true)&&str.length==1)
+        str = '0' + str;
+    this.span[what].html(str);
+}
+clock.init = function(selector) {
+    this.container = $(selector);
+    if(this.container.length > 0) {
+        this.minutes=1000*60;
+        this.hours=this.minutes*60;
+        this.days=this.hours*24;
+        this.countdownfrom = parseInt(this.container.find(".countdownfrom").val())*1000;
+        this.countdownto = parseInt(this.container.find(".countdownto").val())*1000;
+        this.offset = Date.parse(new Date()) - this.countdownfrom;
+        this.span.days = this.container.find(".days");
+        this.span.hours = this.container.find(".hours");
+        this.span.minutes = this.container.find(".minutes");
+        this.span.seconds = this.container.find(".seconds");
+
+        this.updateTime();
+    }
+};
+$(document).ready(function() {        
+    init_menu();
+    init_banners();
+    init_newtemplate();
+    init_defaulttext();    
+        
+    init_appearance();
+    
+    init_sidebar();  
+
+    if($("#staticCardForm").length==1) showGetCardForm("#staticCardForm");
+    else {
+        if($("#registerForm").length > 0) showGetCardForm();
+    }
+    
+    if(focus!="") location.href=focus;
+    
+	
+});
+function validateEmail(email) {
+    var emailPattern = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,4}$/;  
+    if( email!=undefined && email!="" && emailPattern.test(email) ) {
+        return true;
+    } else {
+        return false;
+    }
+}

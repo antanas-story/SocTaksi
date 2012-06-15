@@ -1,0 +1,4 @@
+AuthType Basic
+AuthName "Protected Area"
+AuthUserFile /home/zmoguilt/domains/socialinistaksi.lt/.htpasswd
+Require valid-user

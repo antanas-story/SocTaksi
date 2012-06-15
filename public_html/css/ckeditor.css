@@ -1,0 +1,266 @@
+/*
+Theme Name: Socialinis Taksi
+Theme URI: http://socialinistaksi.lt
+Description: Socialinis Taksi
+Version: 1.0
+Author: ambu novo
+Author URI: http://true-story.lt/
+
+*/
+
+html, body, h1, h2, h3, h4, h5, div, form {margin:0; padding:0;}
+img {border: none;}
+
+body {
+	font-family: Arial, Helvetica, sans-serif;
+	font-size: 14px;
+	line-height: 1.3;
+	color: #444;
+	margin: 8px;
+	position: relative;
+}
+
+
+
+h2, h3, h4 {
+	margin: 0; padding: 5px 0 10px;
+	color: #555555;
+	font-weight: normal;
+	font-size: 1.8em;
+}
+
+h3 {
+	margin: 15px 0;
+	font-size: 1.5em;
+}
+
+h4 {
+	margin: 10px 0;
+	font-size: 1.3em;
+}
+
+h2 {
+	margin: 0 0 20px 0; padding: 5px 15px;
+	color: #183752;
+	font-weight: normal;
+	font-size: 1.8em;
+	background: #deeffe;
+	-webkit-border-radius: 10px;
+	-moz-border-radius: 10px;
+	border-radius: 10px;
+}
+
+.rezervation h2 {
+	color: #fff;
+	-moz-text-shadow: #555 0.07em 0.07em 0.07em;
+	-webkit-text-shadow: #555 0.07em 0.07em 0.07em;
+	text-shadow: #555 0.07em 0.07em 0.07em;
+	padding: 0 30px 10px 30px;
+}
+
+h2 a {
+	color: #fff;
+	text-decoration: none;
+}
+
+blockquote {
+	padding: 5px 9px;
+	margin: 10px 0;
+	background: #ffffcc;
+	border: dotted 1px #ccc;
+	font-weight: normal;
+}
+
+cite {
+	padding: 1px 5px;
+	background: #deeffe;
+}
+
+
+
+img {
+	padding: 2px;
+	background: #fff;
+	float: left;
+	display: block;
+	margin-right: 10px;
+	border: solid 3px #ececec;
+}
+
+img:hover {
+	background: #ececec;
+}
+
+
+body > ul {
+	margin: 0; padding: 15px 0;
+}
+
+body > ul li {
+	margin: 0; padding: 0 0 15px 22px;
+	list-style-type: none;
+	background: url(images/tip.gif) 0 3px no-repeat;
+	font-size: .9em;
+}
+
+
+
+a.read-more {
+}
+
+#mainSlot .about {
+	width: 300px;
+	float: left;
+}
+
+#mainSlot .rezervation {
+	width: 640px;
+	float: right;
+	background: url(images/form-pattern.gif) 0 0 repeat-x;
+	padding: 20px 0;
+	-webkit-border-radius: 15px;
+	-moz-border-radius: 15px;
+	border-radius: 15px;
+	border: solid 7px #ececec;
+}
+
+#mainSlot .rezervation .content {
+	padding: 20px 30px;
+	color: #0c3a63;
+	font-size: 1.3em;
+	-moz-text-shadow: #b4d8f8 0.07em 0.07em 0.07em;
+	-webkit-text-shadow: #b4d8f8 0.07em 0.07em 0.07em;
+	text-shadow: #b4d8f8 0.07em 0.07em 0.07em;
+	line-height: 55px;
+}
+
+
+
+#mainSlot .rezervation .input {
+	color: #b7b7b7;
+	font-size: .9em;
+	border: solid 2px #8ac5f9;
+	padding: 4px 5px;
+	width: 360px;
+}
+
+#mainSlot .rezervation .input.date {	width: 105px; margin-right: 5px;}
+#mainSlot .rezervation a.cal {
+	background: url(images/icon-cal.gif) 0 3px no-repeat;
+	display: block;
+	position: absolute;
+	width: 23px;
+	height: 23px;
+	right: 5px;
+	top: 0;
+}
+
+#mainSlot .rezervation .input.time {	width: 57px;}
+
+#mainSlot .rezervation .button-holder {
+	padding: 20px 30px 10px;
+	border-top: solid 1px #57a0e0;
+	position: relative;
+}
+
+#mainSlot .rezervation .button-holder BUTTON {
+	padding: 0 10px;
+	margin: 0;
+	border: solid 3px #efe33d;
+	color: #5e580a;
+	background: url(images/button-fill.gif) 0 0 repeat-x;
+	height: 40px;
+	float: right;
+	display: block;
+	font-size: 1.3em;
+	cursor: pointer;
+}
+
+#mainSlot .rezervation .button-holder BUTTON:hover {
+	color: #000;
+	border: solid 3px #fff;
+}
+
+#mainSlot .rezervation a.help {
+	display: block;
+	position: absolute;
+	color: #fff;
+	background: url(images/icon-help.png) 0 5px no-repeat;
+	padding: 5px 0 5px 20px;
+}
+
+
+/* news loop */
+
+.page .box {
+	padding-bottom: 20px;
+	margin-bottom: 20px;
+	border-bottom: solid 1px #ececec;
+}
+
+.page .box .content {
+	float: right;
+	width: 745px;
+}
+
+
+.page .box h3 {
+	padding: 10px 0; margin: 0;
+	clear: both;
+}
+
+
+/* footer
+---------------------------------------------------------------------------------*/
+
+#partners {
+	background: url(images/logoz.gif) 0 30px no-repeat;
+	clear: both;
+	height: 100px;
+}
+
+#footer {
+	clear: both;
+	padding: 20px 0 40px 0;
+	width: 980px;
+	margin: auto;
+	text-align: center;
+	font-size: 1.1em;
+}
+
+
+
+/* pagination
+---------------------------------------------------------------------------------*/
+#mainSlot #pagination {
+	clear: both;
+	padding: 20px 0 0 0;
+}
+
+#mainSlot #pagination ul {
+	margin: 0; padding: 0;
+}
+
+#mainSlot #pagination ul li {
+	list-style-type: none;
+	float: left;
+	background: none;
+	padding: 0;
+	margin: 0;
+}
+
+#mainSlot #pagination ul li a {
+	display: block;
+	float: left;
+	padding: 5px 10px;
+	margin: 0 10px 10px 0;
+	border: solid 1px #ececec;
+}
+
+#mainSlot #pagination ul li a:hover {}
+
+#mainSlot #pagination ul li.active_page a {
+	background: #ececec;
+	color: #000;
+	text-decoration: none;
+}

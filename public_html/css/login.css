@@ -1,0 +1,17 @@
+body, td { text-align: center; font-family: Arial,Helvetica,sans-serif; font-size: 14px; color: #1E1E1E; }
+body { background-color:#F3F3F3; }
+
+.password { margin:5% auto; width:350px; padding:20px; border:1px solid #888888; background-color: #FFFFFF; }
+
+.error { padding:5px; margin-bottom:10px; background-color:#FF6161; border:1px solid #DD2222; }
+
+/* form */
+form { margin: 0; }
+table { width:100%; }
+#username, #password { width:150px; }
+
+.hidden { display: none; }
+/* aligns */
+.right { text-align:right; }
+.left { text-align:left; }
+.center { text-align:center; }

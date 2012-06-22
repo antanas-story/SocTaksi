@@ -2,7 +2,7 @@
 </div><!-- /#wraper -->
 	<div id="footer">
 			Programą rengia: <strong>Nacionalinis socialinės integracijos institutas</strong> &copy; 2012<br>
-<a href="http://www.zmogui.lt">www.zmogui.lt</a>, <a href="mailto:zmogui@zmogui.lt">zmogui@zmogui.lt</a>, Gedimino pr. 9, 01103 Vilnius, Lietuva Tel.: +370 652 63085
+<a href="http://www.zmogui.lt">www.zmogui.lt</a>, <a href="mailto:zmogui@zmogui.lt">zmogui@zmogui.lt</a>, Gedimino pr. 9, 01103 Vilnius, Lietuva Tel.: +370 600 91989
 
 		<div id="login-form" title="Prisijungimas">
 			<p class="validateTips"></p>

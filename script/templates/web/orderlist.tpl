@@ -1,20 +1,21 @@
 	<ul class="order-list {if !$current}previous-orders{/if}">
 	{foreach $orders as $o}
 		<li data-id="{$o.id}" class="{$o.status}">
-			<div class="name">{$o.firstname} {$o.lastname} <span>(Sutarties numeris: {$o.contract})</span></div>
 			<div class="adress">
-				<span>Iš:</span> {$o.addressFrom}<br />
-				<span>Į:</span> {$o.addressTo}<br />
-				<span>Data:</span> {$o.when|substr:0:10}, {$o.when|date_format:"%A"}<br />
-				<span>Laikas:</span> {$o.when|substr:11:-3}<br />
+				<div><span>Iš:</span> {$o.addressFrom}</div>
+				<div><span>Į:</span> {$o.addressTo}</div>
+				<div><span>Data:</span> {$o.when|substr:0:10}, {$o.when|date_format:"%A"}</div>
+				<div><span>Laikas:</span> {$o.when|substr:11:-3}</div>
 				{if $o.backOn|timestamp > 0}
-				<span>Grįžta:</span> {$o.when|substr:11:-3}<br />
+				<div><span>Grįžta:</span> {$o.when|substr:11:-3}</div>
 				{/if}
-				<span>Telefonas:</span> {$o.phone}
 			</div>
+			<div class="more">
+				<strong>{$o.firstname} {$o.lastname}</strong>, <span>sutarties numeris:</span> {$o.contract}, <span>telefonas</span> {$o.phone}<br>
 			{if !empty($o.extra)}
-			<div class="more"><span>Papildoma informacija:</span> {$o.extra}</div>
+				<span>Papildoma informacija:</span> {$o.extra}</span>
 			{/if}
+			</div>
 			{if $o.status=="new"}
 				<div class="status">Užsakymas laukia patvirtinimo</div>
 				<div class="buttons"><a href="#" name="accepted">Patvirtinti</a><a href="#" name="rejected">Atšaukti</a></div>

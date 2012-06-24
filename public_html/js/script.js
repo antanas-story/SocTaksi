@@ -157,7 +157,7 @@ function init_time() {
 			
 			// less than 20 minutes from now can't reserve
 			var now = new Date();
-			var letThrough = Math.ceil(Math.round(now.getTime()/1000)/300)*300+ 20 * 60;
+			var letThrough = Math.round(now.getTime()/1000)+ 20 * 60;
 			var setTo = $("#dateField").datepicker( "getDate" );//" "+timeStr;
 			setTo.setHours(hours); setTo.setMinutes(minutes);
 			var setToTS = setTo.getTime()/1000;//Date.parse( setTo ); 

@@ -870,7 +870,7 @@ input[type='submit']:hover, button:hover {
 	background: -moz-linear-gradient(top,  #ededed,  #fff);
 	filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#ededed', endColorstr='#ffffff');
 }
-#mainSlot .order-list.previous-orders .buttons { display: none; }
+#mainSlot .order-list.previous-orders .buttons { position:relative; left:-9999px; }
 
 /* stats
 ---------------------------------------------------------------------------------*/

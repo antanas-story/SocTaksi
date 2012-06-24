@@ -207,12 +207,19 @@ class User extends UserCore{
         	}
         	
         	if(isset($urlpieces[1]) && $urlpieces[1]=="istorija") { 
-        		$w = "<="; $current = false; $o = "DESC";
-        	} else { $w = ">"; $o = "ASC"; } 
+        		$w = "<=";
+        		$current = false;
+        		$o = "o.when DESC";
+        		$optWhere = "";
+        	} else {
+        		$w = ">";
+        		$o = "o.status ASC, o.when ASC";
+        		$optWhere = "AND o.status IN('accepted', 'new')";
+        	} 
         	$q ="SELECT o.*, u.firstname, u.lastname, u.contract, u.phone ".
         		"FROM {p}orders as o, {p}users as u ".
-        		"WHERE o.client = u.id AND o.when {$w} '$now' ".
-        		"ORDER BY o.when {$o}";        	
+        		"WHERE o.client = u.id {$optWhere} AND o.when {$w} '$now' ".
+        		"ORDER BY {$o}";        	
         	$orders = $this->db->q($q);
         	$this->smarty->assign('orders', $orders);
         	$this->smarty->assign('current', $current);

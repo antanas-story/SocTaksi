@@ -1,9 +1,10 @@
 etc/
-
+.svn/
 
 #################
 ## Eclipse
 #################
+
 
 *.pydevproject
 .project

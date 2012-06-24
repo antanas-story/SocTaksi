@@ -351,11 +351,12 @@ a.read-more {
 	width: 23px;
 	height: 23px;
 	right: 10px;
-	top: 0;
+	top: 1px;
 }
 
 #mainSlot .rezervation .input.time, 
-#mainSlot #rezervation .input.time {	width: 57px;}
+#mainSlot #rezervation .input.time,
+#mainSlot #timeFieldClone {	width: 57px;}
 
 #mainSlot .rezervation .button-holder {
 	padding: 20px 30px 10px;
@@ -398,7 +399,7 @@ input[type='submit']:hover, button:hover {
 	width: 530px;
 }
 
-#mainSlot .rezervation div.select-time {
+#mainSlot .rezervation span.select-time {
 	background: #fff;
 	position: absolute;
 	top: -4px;
@@ -409,9 +410,15 @@ input[type='submit']:hover, button:hover {
 	line-height: normal;
 	padding: 5px;
 	text-align: center;
+	display:none;
 }
 
-#mainSlot .rezervation div.select-time .bar {
+#mainSlot .rezervation span.select-time .bar,
+#mainSlot .rezervation span.select-time .hours,
+#mainSlot .rezervation span.select-time .minutes
+	{ display:block; }
+
+#mainSlot .rezervation span.select-time .bar {
 	width: 100%px;
 	height: 5px;
 	background: #ccc;

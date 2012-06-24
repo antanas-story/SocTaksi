@@ -166,13 +166,82 @@ function init_time() {
 				timeStr = leadZeros(now.getHours())+":"+leadZeros(now.getMinutes())
 				var dateStr = now.getFullYear()+"-"+leadZeros(d.getMonth())+"-"+leadZeros(d.getDate());
 				$("#dateField").datepicker( 'setDate', dateStr );
+				d = now;
 				self.val( timeStr );
 			} else {
 				self.val( timeStr );
 			}
 			
+			self.data("hours", d.getHours());
+			self.data("minutes", d.getMinutes());
 		}
 	});
+	
+	// jeigu veiksmas vyksta tituliniame
+	var titularDiv = $(".select-time");
+	if(titularDiv.length > 0) {
+		var timeClone = $("#timeFieldClone");
+		
+		var sliderHours = titularDiv.find(".slider.hours");
+		var textHours = titularDiv.find(".text.hours span");
+		var sliderMinutes = titularDiv.find(".slider.minutes");
+		var textMinutes = titularDiv.find(".text.minutes span");
+		sliderChangeCallback = function(hours, minutes) {
+			if(hours==undefined)
+				hours = sliderHours.slider("value");
+			if(isNaN(hours)) hours = 12;
+			if(minutes==undefined)
+				minutes = sliderMinutes.slider("value");
+			if(isNaN(minutes)) minutes = 0;
+			var timeStr = leadZeros(hours) +  ":" + leadZeros(minutes);
+			time.val(timeStr);
+		};
+		sliderHours.slider({
+			value:12,
+			min: 0,
+			max: 23,
+			step: 1,
+			slide: function( event, ui ) {
+				//textHours.html(ui.value);
+				//sliderChangeCallback(ui.value, null);
+			}
+		});
+		sliderMinutes.slider({ 
+			value: 0,
+			min: 0,
+			max: 55,
+			step: 5,
+			slide: function( event, ui ) {
+				//textMinutes.html(ui.value);
+				//sliderChangeCallback(null, ui.value);
+			}
+		});
+		
+		
+		time.blur(function() {
+			timeClone.val(time.val());
+			sliderHours.slider("value", time.data("hours"));
+			sliderMinutes.slider("value", time.data("minutes"));
+		});
+		timeClone.focus(function() {
+			titularDiv.show(300);
+			time.focus();
+		});
+		
+		//$( "#amount" ).val( "$" + $( "#slider" ).slider( "value" ) );
+		
+		
+		time.focus(function(e) {
+			console.log("timeField focus event", e);
+			if(titularDiv.hasClass("inactive")) {
+				titularDiv.switchClass( "inactive", "active", 1000 );
+			}
+		});
+		titularDiv.focus(function(e) {
+			console.log("titularDiv focus event", e);
+		})
+		
+	}
 }
 function leadZeros(num) {
 	var s = "0" + num;

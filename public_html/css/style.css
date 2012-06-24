@@ -749,8 +749,8 @@ input[type='submit']:hover, button:hover {
 }
 
 #mainSlot ul.order-list li {	border: solid 5px #fffbbb;}
-#mainSlot ul.order-list li.true {	border: solid 5px #bcf4b7;}
-#mainSlot ul.order-list li.false {	border: solid 5px #fec4bf;}
+#mainSlot ul.order-list li.accepted {	border: solid 5px #bcf4b7;}
+#mainSlot ul.order-list li.rejected {	border: solid 5px #fec4bf;}
 
 
 #mainSlot ul.users-list div,
@@ -870,6 +870,7 @@ input[type='submit']:hover, button:hover {
 	background: -moz-linear-gradient(top,  #ededed,  #fff);
 	filter:  progid:DXImageTransform.Microsoft.gradient(startColorstr='#ededed', endColorstr='#ffffff');
 }
+#mainSlot .order-list.previous-orders .buttons { display: none; }
 
 /* stats
 ---------------------------------------------------------------------------------*/

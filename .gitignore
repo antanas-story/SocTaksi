@@ -5,7 +5,6 @@ etc/
 ## Eclipse
 #################
 
-
 *.pydevproject
 .project
 .metadata

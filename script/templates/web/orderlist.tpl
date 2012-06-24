@@ -7,7 +7,7 @@
 				<div><span>Data:</span> {$o.when|substr:0:10}, {$o.when|date_format:"%A"}</div>
 				<div><span>Laikas:</span> {$o.when|substr:11:-3}</div>
 				{if $o.backOn|timestamp > 0}
-				<div><span>Grįžta:</span> {$o.when|substr:11:-3}</div>
+				<div><span>Grįžta:</span> {$o.backOn|substr:11:-3}</div>
 				{/if}
 			</div>
 			<div class="more">

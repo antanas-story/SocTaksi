@@ -23,7 +23,7 @@ if(isset($_SESSION['uid'])) {
 $smarty = new MySmarty;
 $smarty->template_dir = SMARTY_LOGIN_TEMPLATE_DIR;
 
-if($loginfail) 
+if(isset($loginfail)&&$loginfail) 
     $smarty->assign('error', 'Blogas vartotojo vardas ir/arba slaptažodis');
 elseif(isset($_GET["expired"])) {
     $smarty->assign('error', 'Sesijos laikas baigėsi, prašome prisijungti vėl');

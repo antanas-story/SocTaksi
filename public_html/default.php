@@ -2,7 +2,11 @@
 header("Content-Type: text/html; charset=UTF-8");
 mb_internal_encoding("UTF-8");
 
-require('../script/configs/definitions.php');
+if(file_exists("../script/DEV"))
+	define("CONFIG_FOLDER", 'configs-dev');
+else
+	define("CONFIG_FOLDER", 'configs');
+require('../script/'.CONFIG_FOLDER.'/definitions.php');
 require(ROOT.'/helper.php');
 function autoload($className) {
     $folders = array("classes", "model", "controller");

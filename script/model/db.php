@@ -37,7 +37,7 @@ class db extends mysqli {
     * @return void
     */
     public function __construct($mysql=NULL) {
-        if(empty($mysql)) require ROOT.'/configs/mysql_info.php';
+        if(empty($mysql)) require ROOT.'/'.CONFIG_FOLDER.'/mysql_info.php';
         ini_set("mysqli.reconnect", 1);
         $this->init();
         $this->options(MYSQLI_READ_DEFAULT_GROUP,"ft_min_word_len=3");

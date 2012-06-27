@@ -6,7 +6,7 @@
  <meta name="copyright" content="Antanas Sinica" />
  <meta http-equiv="content-type" content="text/html; charset=utf-8">
  <link rel="shortcut icon" href="favicon-admin.ico">
- <title>{$title}</title>
+ <title>Prisijungimas</title>
  <link type="text/css" rel="stylesheet" href="css/login.css" />
 </head>
 <body>

@@ -13,7 +13,7 @@
 			<div class="adress"><span>El. pašto adresas:</span> {$u.email}</div>
 			<div class="count">
 				{if $u.type!='client'}Priėmė iškvietimą{else}Kvietė mašina{/if}
-				<strong>{$u.count}</strong> kart{if ($total%100 >= 11 && $total%100 <= 19) || $total % 10 == 0}ų{elseif $total%10 == 1}ą{else}us{/if}
+				<strong>{$u.count}</strong> kart{if ($u.count%100 >= 11 && $u.count%100 <= 19) || $u.count % 10 == 0}ų{elseif $u.count%10 == 1}ą{else}us{/if}
 			</div>
 			{if !empty($u.extra)}
 			<div class="more"><span>Papildoma informacija:</span> {$u.extra}</div>

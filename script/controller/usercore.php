@@ -24,9 +24,7 @@ class UserCore {
     public function display() {
         
         // decypher url
-        $url = $_GET["url"];
-        //if(empty($url)) $url = "nuolaidos";
-        if(empty($url)) $url = $this->defaulturl;
+        $url = isset($_GET["url"]) ? $_GET["url"] : $this->defaulturl;
         
         $urlpieces = explode("/",$url);
         

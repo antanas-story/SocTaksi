@@ -17,6 +17,7 @@ define("UPLOAD_DIR", "uploads");
 
 /* SITE SPECIFIC */
 define("PROJECT_STARTED_ON", "2012-06-01 00:00:00");
+define("MINUTES_FOR_ONE_CLIENT", 40);
                                                                                                   
 /* ADMIN PANEL */
 define('FILE_UPLOAD_ERR', 'Klaida įkeliant failą. ');

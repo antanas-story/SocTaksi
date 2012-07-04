@@ -1,13 +1,9 @@
-{include file='header.tpl' title='Užsakymai' metadescrip=''}
+{include file='header.tpl' title='Atšaukti užsakymai' metadescrip=''}
 <div class="page">
-	<h2>{if $current}Einamieji užsakymai{else}Buvę užsakymai{/if}</h2>
+	<h2>Atšaukti užsakymai</h2>
 	<a href="{$path}" class="button">Naujas užsakymas</a>
-	{if $current}
 	<a href="{$path}uzsakymai/istorija" class="button">Užsakymų istorija</a>
-	{else}
 	<a href="{$path}uzsakymai" class="button">Einamieji užsakymai</a>
-	{/if}
-	<a href="{$path}uzsakymai/atsaukti" class="button">Atšaukti užsakymai</a>
 	<div id="orders">
 	{include file='orderlist.tpl'}
 	</div>

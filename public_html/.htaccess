@@ -2,7 +2,7 @@
 <IfModule mod_rewrite.c>
 
 RewriteEngine On
-RewriteBase /
+RewriteBase /soctaksi/public_html/
 RewriteCond %{HTTP_HOST} ^www.socialinistaksi.lt [NC]
 RewriteRule ^(.*)$ http://socialinistaksi.lt/$1 [L,R=301]
 RewriteCond %{REQUEST_FILENAME} !-f

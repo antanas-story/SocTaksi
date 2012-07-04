@@ -256,7 +256,7 @@ class db extends mysqli {
                     $qmarks[] = "?";
                     $type = $this->determineType($value);
                     //$meta[] = $type == "s" ? utf8_encode($fields[$field]) : $fields[$field];
-                    $meta[] = $fields[$field];
+                    $meta[] = &$fields[$field];
                     $types .= $type;
                 }                
             }
@@ -269,7 +269,7 @@ class db extends mysqli {
                 $fieldnames[] = "`".$field."` = ?";
                 $type = $this->determineType($value);
                 //$meta[] = $type == "s" ? utf8_encode($fields[$field]) : $fields[$field];
-                $meta[] = $fields[$field];
+                $meta[] = &$fields[$field];
                 $types .= $type;                
             }
             $f = implode(', ', $fieldnames);

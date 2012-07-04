@@ -21,8 +21,8 @@ class User extends UserCore{
     	setlocale(LC_ALL, 'lt_LT.UTF8');
     }
     protected function common() {
-        // paths
         $this->smarty->assign('path', $this->absolutepath);
+        $this->smarty->assign('minutesPerOrder', MINUTES_FOR_ONE_CLIENT);
     }
     protected function auth(&$tpl, $whoGoesInside="") {
     	$fail = false;
@@ -117,7 +117,8 @@ class User extends UserCore{
         				'addressFrom'=>$_POST['address'],
         				'addressTo'=>$_POST['addressTo'],
         				'backOn'=>$_POST['backOn'],
-        				'extra'=>$_POST['extra']
+        				'extra'=>$_POST['extra'],
+        				'minutes'=>MINUTES_FOR_ONE_CLIENT
         			);
         			$this->db->update("orders", $fields);
         			$tpl .= "d";
@@ -175,7 +176,7 @@ class User extends UserCore{
 	        	$q ="SELECT u.*, count(o.id) as count ".
 	        		"FROM {p}users as u LEFT JOIN {p}orders as o ON (u.id = o.driver OR u.id = o.client) ".
 	        		"WHERE u.deleted=0 GROUP BY u.id ".
-	        		"ORDER BY u.type DESC, u.lastname ASC";
+	        		"ORDER BY u.type DESC, u.firstname ASC";
 	        	$users = $this->db->qKey(array("type", "id"), $q);
 	        	$this->smarty->assign('clients', $users["client"]);
 	        	$this->smarty->assign('drivers', $users["driver"]);
@@ -207,18 +208,20 @@ class User extends UserCore{
         	}
         	
         	if(isset($urlpieces[1]) && $urlpieces[1]=="istorija") { 
-        		$w = "<=";
+        		$w = "o.when <= '$now'";
         		$current = false;
         		$o = "o.when DESC";
-        		$optWhere = "";
+        	} elseif(isset($urlpieces[1]) && $urlpieces[1]=="atsaukti") {
+        		$w = "o.status = 'rejected'";
+        		$o = "o.when DESC";
+        		$tpl = "orders-rejected";
         	} else {
-        		$w = ">";
+        		$w = "o.when > '$now' AND o.status IN('accepted', 'new')";
         		$o = "o.status ASC, o.when ASC";
-        		$optWhere = "AND o.status IN('accepted', 'new')";
         	} 
         	$q ="SELECT o.*, u.firstname, u.lastname, u.contract, u.phone ".
         		"FROM {p}orders as o, {p}users as u ".
-        		"WHERE o.client = u.id {$optWhere} AND o.when {$w} '$now' ".
+        		"WHERE o.client = u.id AND {$w}".
         		"ORDER BY {$o}";        	
         	$orders = $this->db->q($q);
         	$this->smarty->assign('orders', $orders);
@@ -337,7 +340,7 @@ class User extends UserCore{
     	else return $drivers;
     }
     protected function isTimeAvailable($time) {
-    	$tolerance = 30 * 60; // 30 minutes
+    	$tolerance = MINUTES_FOR_ONE_CLIENT * 60; // 30 minutes
     	$ts = strtotime($time);
     	// hour, minute, second, month, day, year
     	$from = date("Y-m-d H:i:s", $ts-$tolerance); // mktime(date("H", $ts), date("i", $ts)-tolearnce, date("s", $ts), date("n", $ts), date("j", $ts), date("Y", $ts));

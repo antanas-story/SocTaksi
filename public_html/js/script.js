@@ -1,7 +1,8 @@
 var timeAccuracyMinutes = 5;
-var path;
+var path, minutesPerOrder;
 $(function() {
 	path = $("#path").val();
+	minutesPerOrder = $("#minutesPerOrder").val();
 	
 	init_contact_form();
 	init_form();
@@ -77,7 +78,6 @@ function init_busyness() {
 	var h24 = b.find(".empty:first").width();
 	var h1 = h24/24;
 	var m1 = h1/60;
-	var width = 30*m1;
 	
 	b.find(".day").each(function() {
 		var day = $(this);
@@ -88,10 +88,11 @@ function init_busyness() {
 			var mins = parseInt( val.slice(14,16) );
 			var date = new Date(val);
 			var left =  hours*h1 + mins*m1;
+			var width = m1 * $(this).data("minutes");
 			space.append('<div class="full" style="left:'+left+'px;width:'+width+'px;"></div>');
 		});
 		space.click(function(e) {
-			console.log(e);
+			//console.log(e);
 			var x = e.pageX - $(this).offset().left;
 			var hours = Math.ceil( x / h1 )-1;
 			var minutes = Math.round( (x % h1) / m1 );
@@ -156,7 +157,7 @@ function init_time() {
 			
 			// less than 20 minutes from now can't reserve
 			var now = new Date();
-			var letThrough = Math.round(now.getTime()/1000)+ 20 * 60;
+			var letThrough = Math.ceil(Math.round(now.getTime()/1000)/300)*300+ 20 * 60;
 			var setTo = $("#dateField").datepicker( "getDate" );//" "+timeStr;
 			setTo.setHours(hours); setTo.setMinutes(minutes);
 			var setToTS = setTo.getTime()/1000;//Date.parse( setTo ); 

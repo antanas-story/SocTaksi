@@ -43,7 +43,7 @@
 				<div class="empty"></div>
 			</div>
 			{foreach $list as $order}
-				<input type='hidden' class='ordered' value='{$order.when}' />
+				<input type='hidden' class='ordered' value='{$order.when}' data-minutes="{$order.minutes}" />
 			{/foreach}
 		</div>
 		{if $list@iteration >= 3}{break}{/if}

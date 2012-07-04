@@ -1,4 +1,5 @@
 etc/
+templates_c/*
 .svn/
 DEV
 

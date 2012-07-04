@@ -424,6 +424,9 @@ input[type='submit']:hover, button:hover {
 	background: #ccc;
 	margin: 5px 0 15px 0;
 }
+#mainSlot .rezervation span.select-time .ui-slider { height: 0.5em; margin:4px 0 6px; }
+#mainSlot .rezervation span.select-time .ui-slider-handle { height: 0.9em; width:0.9em; }
+#mainSlot .rezervation span.select-time #timeField { margin:8px 0 0 0; }
 
 
 /* news loop */

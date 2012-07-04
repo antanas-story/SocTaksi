@@ -157,7 +157,7 @@ function init_time() {
 			
 			// less than 20 minutes from now can't reserve
 			var now = new Date();
-			var letThrough = Math.round(now.getTime()/1000)+ 20 * 60;
+			var letThrough = Math.ceil(Math.round(now.getTime()/1000)/300)*300+ 20 * 60;
 			var setTo = $("#dateField").datepicker( "getDate" );//" "+timeStr;
 			setTo.setHours(hours); setTo.setMinutes(minutes);
 			var setToTS = setTo.getTime()/1000;//Date.parse( setTo ); 
@@ -197,35 +197,37 @@ function init_time() {
 			var timeStr = leadZeros(hours) +  ":" + leadZeros(minutes);
 			time.val(timeStr);
 		};
-		sliderHours.slider({
-			value:12,
-			min: 0,
-			max: 23,
-			step: 1,
-			slide: function( event, ui ) {
-				//textHours.html(ui.value);
-				//sliderChangeCallback(ui.value, null);
-			}
-		});
-		sliderMinutes.slider({ 
-			value: 0,
-			min: 0,
-			max: 55,
-			step: 5,
-			slide: function( event, ui ) {
-				//textMinutes.html(ui.value);
-				//sliderChangeCallback(null, ui.value);
-			}
-		});
-		
 		
 		time.blur(function() {
 			timeClone.val(time.val());
+			textHours.html(time.data("hours"));
+			textMinutes.html(time.data("minutes"));
 			sliderHours.slider("value", time.data("hours"));
 			sliderMinutes.slider("value", time.data("minutes"));
 		});
 		timeClone.focus(function() {
 			titularDiv.show(300);
+			sliderHours.slider({
+				value:12,
+				min: 0,
+				max: 23,
+				step: 1,
+				slide: function( event, ui ) {
+					textHours.html(ui.value);
+					sliderChangeCallback(ui.value, null);
+				}
+			});
+			sliderMinutes.slider({ 
+				value: 0,
+				min: 0,
+				max: 55,
+				step: 5,
+				slide: function( event, ui ) {
+					textMinutes.html(ui.value);
+					sliderChangeCallback(null, ui.value);
+				}
+			});
+			time.blur();
 			time.focus();
 		});
 		
@@ -233,14 +235,16 @@ function init_time() {
 		
 		
 		time.focus(function(e) {
-			console.log("timeField focus event", e);
 			if(titularDiv.hasClass("inactive")) {
 				titularDiv.switchClass( "inactive", "active", 1000 );
 			}
 		});
-		titularDiv.focus(function(e) {
-			console.log("titularDiv focus event", e);
-		})
+		$("#addressField, #dateField").focus(function(e) {
+			time.blur();
+			titularDiv.hide(300);
+			sliderHours.slider("destroy");
+			sliderMinutes.slider("destroy");
+		});
 		
 	}
 }

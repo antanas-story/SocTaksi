@@ -116,11 +116,13 @@ class User extends UserCore{
         				'changed'=>$now,
         				'addressFrom'=>$_POST['address'],
         				'addressTo'=>$_POST['addressTo'],
-        				'backOn'=>$_POST['backOn'],
+        				'backOn'=>date("Y-m-d")." ".$_POST['backOn'],
         				'extra'=>$_POST['extra'],
         				'minutes'=>MINUTES_FOR_ONE_CLIENT
         			);
         			$this->db->update("orders", $fields);
+        			dump($fields);
+        			dump($_POST);
         			$tpl .= "d";
         		} else {
         			$tpl .= "confirm";

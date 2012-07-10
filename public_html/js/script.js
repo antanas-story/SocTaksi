@@ -130,15 +130,16 @@ function init_form() {
 }
 
 function init_time() {
+	var timeFields = $(".input.time");
 	var time = $("#timeField");
 	var timeTitle = time.attr("title");
-	time.focus(function() {
+	timeFields.focus(function() {
 		var self = $(this);
 		if(self.val() == timeTitle) {
 			self.val("");
 		} 
 	});
-	time.blur(function() {
+	timeFields.blur(function() {
 		var self = $(this);
 		var val = self.val();
 		if(val == "") {
@@ -181,6 +182,7 @@ function init_time() {
 	// jeigu veiksmas vyksta tituliniame
 	var titularDiv = $(".select-time");
 	if(titularDiv.length > 0) {
+		titularDiv.hide();
 		var timeClone = $("#timeFieldClone");
 		
 		var sliderHours = titularDiv.find(".slider.hours");

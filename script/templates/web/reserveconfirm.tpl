@@ -59,7 +59,7 @@
 		</div>
 	</div>
 	<input type='submit' value='Rezervuoti' />
-
+</form>
 </div><!-- /.page -->
 
 {include file='footer.tpl'}
